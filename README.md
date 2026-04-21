@@ -9,10 +9,10 @@ A free, no-account-needed tool that finds the best Playwright locators for any w
 ## How it works
 
 ```
-User's browser  →  Your server (holds the API key)  →  Anthropic Claude API
+User's browser  →  Your server (holds the API key)  →  Google Gemini API
 ```
 
-The frontend (`index.html`) calls your backend (`server.js`). Your server holds the Anthropic API key as an environment variable — users never see it and never need their own.
+The frontend (`index.html`) calls your backend (`server.js`). Your server holds the Gemini API key as an environment variable — users never see it and never need their own.
 
 ---
 
@@ -20,11 +20,11 @@ The frontend (`index.html`) calls your backend (`server.js`). Your server holds 
 
 Railway gives you $5/month free credits — more than enough for this tool.
 
-### Step 1 — Get a free Anthropic API key
+### Step 1 — Get a Gemini API key
 
-1. Go to [console.anthropic.com](https://console.anthropic.com)
-2. Sign up (free, no credit card needed)
-3. Go to **API Keys → Create Key**
+1. Go to [Google AI Studio](https://aistudio.google.com/)
+2. Sign in with your Google account
+3. Open **Get API key**
 4. Copy it — you'll need it in Step 3
 
 ### Step 2 — Deploy the server to Railway
@@ -37,7 +37,7 @@ Railway gives you $5/month free credits — more than enough for this tool.
 ### Step 3 — Set your API key
 
 1. In Railway → open your project → **Variables**
-2. Add variable: `ANTHROPIC_API_KEY` = `sk-ant-...your-key...`
+2. Add variable: `GEMINI_API_KEY` = `AIza...your-key...`
 3. Railway redeploys automatically
 
 ### Step 4 — Get your server URL
@@ -68,7 +68,7 @@ Commit and push. Now share the GitHub Pages URL with anyone — they need nothin
 1. Go to [render.com](https://render.com) → **New Web Service**
 2. Connect this GitHub repo
 3. Set **Start Command** to `node server.js`
-4. Add environment variable: `ANTHROPIC_API_KEY`
+4. Add environment variable: `GEMINI_API_KEY`
 5. Deploy and copy your URL from the dashboard
 
 > Note: Render's free tier sleeps after 15 min of inactivity. First request after sleep takes ~30s to wake up.
@@ -81,7 +81,7 @@ Commit and push. Now share the GitHub Pages URL with anyone — they need nothin
 git clone https://github.com/test1111-sudo/Locator-searching-tool.git
 cd Locator-searching-tool
 
-export ANTHROPIC_API_KEY=sk-ant-...your-key...
+export GEMINI_API_KEY=AIza...your-key...
 
 node server.js
 # [OK] PW-Locator server running on port 3000
