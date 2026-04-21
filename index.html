@@ -288,7 +288,7 @@ async function execute() {
   const desc = document.getElementById('desc').value.trim();
   if (!url || !desc) { setLog('[ERR] // both fields required', 'err'); return; }
 
-  if (API.includes('YOUR-SERVER-URL-HERE')) {
+  if (API.includes('locator-searching-tool-production.up.railway.app')) {
     setLog('[ERR] // server not configured — see README for deployment instructions', 'err');
     return;
   }
