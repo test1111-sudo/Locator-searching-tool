@@ -1,0 +1,13 @@
+{
+  "name": "pw-locator-server",
+  "version": "3.1.0",
+  "description": "Playwright Locator Advisor — backend proxy server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}

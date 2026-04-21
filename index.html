@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PW-LOCATOR // PLAYWRIGHT LOCATOR ADVISOR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #0a0a0f;
+      --card:      #12121a;
+      --muted:     #1c1c2e;
+      --fg:        #e0e0e0;
+      --fg-muted:  #6b7280;
+      --border:    #2a2a3a;
+      --accent:    #00ff88;
+      --magenta:   #ff00ff;
+      --cyan:      #00d4ff;
+      --red:       #ff3366;
+      --amber:     #ffb000;
+      --glow-sm:   0 0 3px #00ff88, 0 0 6px #00ff8830;
+      --glow:      0 0 5px #00ff88, 0 0 10px #00ff8840, 0 0 20px #00ff8820;
+      --glow-lg:   0 0 10px #00ff88, 0 0 20px #00ff8860, 0 0 40px #00ff8830;
+      --glow-mag:  0 0 5px #ff00ff, 0 0 20px #ff00ff60;
+      --glow-cyan: 0 0 5px #00d4ff, 0 0 20px #00d4ff60;
+      --glow-red:  0 0 5px #ff3366, 0 0 20px #ff336660;
+      --chamfer:    polygon(0 12px, 12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 12px) 100%, 12px 100%, 0 calc(100% - 12px));
+      --chamfer-sm: polygon(0 7px, 7px 0, calc(100% - 7px) 0, 100% 7px, 100% calc(100% - 7px), calc(100% - 7px) 100%, 7px 100%, 0 calc(100% - 7px));
+      --font-head:  'Orbitron', monospace;
+      --font-body:  'JetBrains Mono', monospace;
+      --font-label: 'Share Tech Mono', monospace;
+    }
+
+    html { background: var(--bg); color: var(--fg); font-family: var(--font-body); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+    body {
+      background-image:
+        linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      background-color: var(--bg);
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.18) 2px, rgba(0,0,0,0.18) 4px);
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .page { max-width: 920px; margin: 0 auto; padding: 2rem 1.5rem 5rem; position: relative; z-index: 1; }
+
+    @keyframes blink   { 50% { opacity: 0; } }
+    @keyframes glitch  {
+      0%,85%,100% { transform: translate(0); filter: none; }
+      87% { transform: translate(-2px, 1px); filter: hue-rotate(30deg); }
+      90% { transform: translate(2px, -1px); }
+      92% { transform: translate(0); filter: none; }
+    }
+    @keyframes rgbShift {
+      0%,100% { text-shadow: -2px 0 var(--magenta), 2px 0 var(--cyan), 0 0 10px rgba(0,255,136,0.4); }
+      50%      { text-shadow:  2px 0 var(--magenta), -2px 0 var(--cyan), 0 0 20px rgba(0,255,136,0.6); }
+    }
+    @keyframes fadeUp  { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spinChar { 0%{content:'/'} 25%{content:'-'} 50%{content:'\\'} 75%{content:'|'} }
+
+    .cursor { display:inline-block; width:10px; height:1em; background:var(--accent); animation:blink 1s step-end infinite; vertical-align:text-bottom; margin-left:3px; box-shadow:var(--glow-sm); }
+
+    /* ── Header ── */
+    header { margin-bottom: 2rem; }
+    .header-bar { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:1.5rem; font-family:var(--font-label); font-size:11px; color:var(--fg-muted); letter-spacing:0.12em; text-transform:uppercase; flex-wrap:wrap; gap:8px; }
+    .header-bar .dot { width:6px; height:6px; border-radius:50%; background:var(--accent); display:inline-block; box-shadow:var(--glow-sm); animation:blink 2s step-end infinite; margin-right:6px; }
+    .header-bar .sys { display:flex; gap:1.5rem; flex-wrap:wrap; }
+    .header-bar .sys span { color:var(--accent); }
+    h1 { font-family:var(--font-head); font-size:clamp(22px,5vw,44px); font-weight:900; text-transform:uppercase; letter-spacing:0.08em; line-height:1.1; color:var(--accent); animation:rgbShift 4s ease-in-out infinite, glitch 10s infinite; margin-bottom:0.5rem; }
+    .tagline { font-family:var(--font-head); font-size:clamp(11px,2vw,14px); font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--magenta); text-shadow:var(--glow-mag); margin-bottom:0.5rem; }
+    .subtitle { font-family:var(--font-label); font-size:13px; color:var(--fg-muted); letter-spacing:0.08em; }
+    .subtitle .hi { color:var(--cyan); }
+
+    /* ── Cyber divider ── */
+    .cyber-divider { display:flex; align-items:center; gap:12px; margin:1.5rem 0; font-family:var(--font-label); font-size:11px; letter-spacing:0.15em; text-transform:uppercase; }
+    .cyber-divider .label { color:var(--accent); white-space:nowrap; text-shadow:var(--glow-sm); }
+    .cyber-divider::before { content:''; flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--accent), var(--border)); }
+    .cyber-divider::after  { content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--border), transparent); }
+
+    /* ── Cyber card ── */
+    .cyber-card { background:var(--card); border:1px solid var(--border); clip-path:var(--chamfer); position:relative; margin-bottom:1rem; }
+    .cyber-card::before { content:''; position:absolute; top:-1px; right:-1px; width:12px; height:12px; border-top:2px solid var(--accent); border-right:2px solid var(--accent); pointer-events:none; box-shadow:2px -2px 6px rgba(0,255,136,0.3); }
+    .cyber-card::after  { content:''; position:absolute; bottom:-1px; left:-1px; width:12px; height:12px; border-bottom:2px solid var(--accent); border-left:2px solid var(--accent); pointer-events:none; box-shadow:-2px 2px 6px rgba(0,255,136,0.3); }
+    .cyber-card-header { background:var(--muted); padding:7px 16px; font-family:var(--font-label); font-size:11px; letter-spacing:0.13em; text-transform:uppercase; color:var(--accent); display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); text-shadow:var(--glow-sm); gap:10px; }
+    .cyber-card-body { padding:1.25rem 1.5rem; }
+    .dots { display:flex; gap:5px; flex-shrink:0; }
+    .dot-r { width:7px; height:7px; border-radius:50%; background:#ff3366; box-shadow:0 0 4px #ff336680; }
+    .dot-y { width:7px; height:7px; border-radius:50%; background:#ffb000; box-shadow:0 0 4px #ffb00080; }
+    .dot-g { width:7px; height:7px; border-radius:50%; background:#00ff88; box-shadow:0 0 4px #00ff8880; }
+
+    /* ── Collapse ── */
+    .collapse-btn { width:100%; background:none; border:none; cursor:pointer; font-family:var(--font-label); font-size:11px; letter-spacing:0.13em; text-transform:uppercase; color:var(--accent); display:flex; align-items:center; justify-content:space-between; padding:7px 16px; text-shadow:var(--glow-sm); transition:background 0.1s; }
+    .collapse-btn:hover { background:rgba(0,255,136,0.05); }
+    .collapse-body { display:none; border-top:1px solid var(--border); padding:1.25rem 1.5rem; }
+    .collapse-body.open { display:block; animation:fadeUp 0.2s ease; }
+    .steps-list { list-style:none; }
+    .steps-list li { display:flex; gap:14px; padding:9px 0; border-bottom:1px solid var(--border); }
+    .steps-list li:last-child { border-bottom:none; }
+    .step-tag { font-family:var(--font-label); font-size:11px; color:var(--accent); text-shadow:var(--glow-sm); min-width:34px; flex-shrink:0; }
+    .step-title { font-family:var(--font-head); font-size:11px; font-weight:700; color:var(--fg); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:3px; }
+    .step-desc { font-size:12px; color:var(--fg-muted); line-height:1.6; }
+    .step-desc .hi { color:var(--cyan); }
+
+    /* ── Field ── */
+    .field { margin-bottom:14px; }
+    .field-label { font-family:var(--font-label); font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(--fg-muted); margin-bottom:6px; display:block; }
+    .cyber-input-row { display:flex; align-items:stretch; border:1px solid var(--border); clip-path:var(--chamfer-sm); transition:border-color 0.15s, box-shadow 0.15s; overflow:hidden; }
+    .cyber-input-row:focus-within { border-color:var(--accent); box-shadow:var(--glow-sm); }
+    .cyber-input-prefix { padding:9px 12px; font-family:var(--font-label); font-size:12px; color:var(--accent); background:var(--muted); border-right:1px solid var(--border); white-space:nowrap; display:flex; align-items:center; text-shadow:var(--glow-sm); flex-shrink:0; }
+    .cyber-input-row input, .cyber-input-row textarea { flex:1; background:var(--card); border:none; outline:none; font-family:var(--font-body); font-size:13px; color:var(--accent); padding:9px 12px; caret-color:var(--accent); width:0; min-width:0; text-shadow:var(--glow-sm); }
+    .cyber-input-row input::placeholder, .cyber-input-row textarea::placeholder { color:var(--fg-muted); text-shadow:none; font-style:italic; }
+    .cyber-input-row textarea { resize:vertical; min-height:80px; line-height:1.5; }
+
+    /* ── Run button ── */
+    .btn-run { width:100%; padding:13px; margin-top:12px; background:transparent; border:2px solid var(--accent); clip-path:var(--chamfer-sm); font-family:var(--font-head); font-size:14px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; color:var(--accent); cursor:pointer; transition:all 0.15s; text-shadow:var(--glow-sm); position:relative; overflow:hidden; }
+    .btn-run::before { content:''; position:absolute; inset:0; background:var(--accent); opacity:0; transition:opacity 0.15s; }
+    .btn-run:hover:not(:disabled)::before { opacity:1; }
+    .btn-run:hover:not(:disabled) { color:var(--bg); text-shadow:none; box-shadow:var(--glow); }
+    .btn-run span { position:relative; z-index:1; }
+    .btn-run:disabled { border-color:var(--border); color:var(--fg-muted); cursor:not-allowed; text-shadow:none; }
+
+    /* ── Log ── */
+    .log-line { font-family:var(--font-label); font-size:12px; color:var(--fg-muted); margin-top:8px; min-height:18px; display:flex; align-items:center; gap:6px; letter-spacing:0.06em; }
+    .log-line.err { color:var(--red); text-shadow:var(--glow-red); }
+    .log-line.ok  { color:var(--accent); text-shadow:var(--glow-sm); }
+    .spin::before { content:'/'; animation:spinChar 0.25s linear infinite; color:var(--accent); text-shadow:var(--glow-sm); }
+    .spin { display:none; }
+    .spin.active { display:inline; }
+
+    /* ── Results ── */
+    .results-bar { font-family:var(--font-label); font-size:11px; letter-spacing:0.13em; text-transform:uppercase; color:var(--fg-muted); padding:6px 14px; background:var(--muted); border-bottom:1px solid var(--border); }
+    .results-bar strong { color:var(--accent); text-shadow:var(--glow-sm); }
+    .locator-card { background:var(--card); border:1px solid var(--border); clip-path:var(--chamfer); margin-bottom:10px; animation:fadeUp 0.25s ease both; }
+    .locator-card.best { border-color:rgba(0,255,136,0.5); box-shadow:0 0 0 1px rgba(0,255,136,0.08),var(--glow-sm); }
+    .locator-titlebar { padding:6px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--muted); border-bottom:1px solid var(--border); }
+    .q-tag { font-family:var(--font-label); font-size:10px; font-weight:700; padding:2px 8px; letter-spacing:0.08em; clip-path:var(--chamfer-sm); }
+    .q-best    { background:var(--accent); color:var(--bg); box-shadow:var(--glow); }
+    .q-good    { border:1px solid var(--accent); color:var(--accent); text-shadow:var(--glow-sm); background:transparent; }
+    .q-fragile { border:1px solid var(--amber); color:var(--amber); background:transparent; }
+    .q-avoid   { border:1px solid var(--red); color:var(--red); background:transparent; }
+    .loc-type  { font-family:var(--font-label); font-size:10px; color:var(--fg-muted); text-transform:uppercase; letter-spacing:0.1em; }
+    .locator-body { padding:1rem 1.25rem; }
+    .locator-code { font-family:var(--font-body); font-size:13px; color:var(--cyan); background:rgba(0,212,255,0.04); border:1px solid rgba(0,212,255,0.2); padding:10px 14px; margin-bottom:10px; cursor:pointer; word-break:break-all; position:relative; text-shadow:0 0 4px rgba(0,212,255,0.4); transition:all 0.15s; clip-path:var(--chamfer-sm); }
+    .locator-code:hover { background:rgba(0,212,255,0.09); border-color:var(--cyan); box-shadow:var(--glow-cyan); }
+    .locator-code::before { content:'> '; color:rgba(0,255,136,0.5); }
+    .copy-hint { position:absolute; right:10px; top:50%; transform:translateY(-50%); font-family:var(--font-label); font-size:10px; color:var(--fg-muted); opacity:0; transition:opacity 0.15s; }
+    .locator-code:hover .copy-hint { opacity:1; }
+    .locator-why { font-size:12px; color:var(--fg-muted); line-height:1.65; margin-bottom:12px; }
+    .locator-why::before { content:'// '; color:var(--border); }
+    .devtools-block { background:var(--bg); border:1px dashed var(--border); padding:12px 14px; clip-path:var(--chamfer-sm); }
+    .devtools-label { font-family:var(--font-label); font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--magenta); margin-bottom:8px; text-shadow:var(--glow-mag); }
+    .dt-step { font-size:12px; color:var(--fg-muted); line-height:1.6; margin-bottom:4px; display:flex; gap:7px; }
+    .dt-step .n { color:var(--accent); min-width:18px; font-family:var(--font-label); font-size:11px; flex-shrink:0; text-shadow:var(--glow-sm); }
+    .kbd { font-family:var(--font-label); font-size:10px; border:1px solid var(--border); color:var(--fg); padding:1px 5px; background:var(--muted); }
+    .dt-cmd { font-family:var(--font-body); font-size:12px; color:var(--accent); background:rgba(0,255,136,0.04); border:1px dashed rgba(0,255,136,0.2); padding:7px 12px; margin-top:6px; word-break:break-all; cursor:pointer; display:block; transition:all 0.15s; text-shadow:var(--glow-sm); clip-path:var(--chamfer-sm); }
+    .dt-cmd::before { content:'$ '; color:var(--fg-muted); text-shadow:none; }
+    .dt-cmd:hover { background:rgba(0,255,136,0.1); border-color:var(--accent); box-shadow:var(--glow-sm); }
+    .snippet-wrap { border:1px solid var(--border); clip-path:var(--chamfer); margin-top:1rem; background:var(--card); }
+    .snippet-header { background:var(--muted); padding:6px 14px; font-family:var(--font-label); font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(--magenta); border-bottom:1px solid var(--border); text-shadow:var(--glow-mag); }
+    .snippet-body { padding:1rem 1.25rem; }
+    .snippet-code { font-family:var(--font-body); font-size:13px; color:var(--fg); background:var(--bg); border:1px dashed var(--border); padding:14px 16px; white-space:pre; overflow-x:auto; cursor:pointer; line-height:1.7; clip-path:var(--chamfer-sm); transition:all 0.15s; }
+    .snippet-code:hover { border-color:var(--accent); box-shadow:var(--glow-sm); }
+    .snippet-note { font-family:var(--font-label); font-size:11px; color:var(--fg-muted); margin-top:8px; }
+    .snippet-note::before { content:'// '; color:var(--border); }
+
+    footer { margin-top:3rem; padding-top:1rem; border-top:1px solid var(--border); font-family:var(--font-label); font-size:11px; color:var(--fg-muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; letter-spacing:0.08em; }
+    footer a { color:var(--cyan); text-decoration:none; }
+    footer a:hover { text-shadow:var(--glow-cyan); }
+
+    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--accent); color:var(--bg); padding:8px 20px; font-family:var(--font-label); font-size:12px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; opacity:0; transition:opacity 0.2s; pointer-events:none; z-index:9998; box-shadow:var(--glow); clip-path:var(--chamfer-sm); }
+    .toast.show { opacity:1; }
+
+    @media (max-width:520px) {
+      .page { padding:1rem 0.75rem 3rem; }
+      h1 { font-size:20px; }
+      .header-bar .sys { gap:0.75rem; font-size:10px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="header-bar">
+      <div><span class="dot"></span>SYSTEM ONLINE // PW-LOCATOR v3.2.0</div>
+      <div class="sys">
+        <div>ENGINE: <span>CLAUDE AI</span></div>
+        <div>API KEY: <span>NOT REQUIRED</span></div>
+        <div>MODE: <span>LIVE</span></div>
+      </div>
+    </div>
+    <h1>PW-LOCATOR<span class="cursor"></span></h1>
+    <div class="tagline">PLAYWRIGHT LOCATOR ADVISOR</div>
+    <div class="subtitle">&gt; FIND THE <span class="hi">RIGHT SELECTOR</span>, FIRST TIME. NO ACCOUNT. NO API KEY. FREE.<span class="cursor" style="background:var(--cyan);box-shadow:var(--glow-cyan);width:8px;"></span></div>
+  </header>
+
+  <!-- HOW TO USE -->
+  <div class="cyber-card">
+    <div class="cyber-card-header">
+      <button class="collapse-btn" onclick="toggle('howto')">
+        <span><span style="color:var(--magenta);text-shadow:var(--glow-mag)">&#9670;</span>&nbsp; QUICK START // INITIALIZATION PROTOCOL</span>
+        <span id="chev-howto" style="color:var(--fg-muted)">[+]</span>
+      </button>
+      <div class="dots"><div class="dot-r"></div><div class="dot-y"></div><div class="dot-g"></div></div>
+    </div>
+    <div class="collapse-body" id="guide-howto">
+      <ul class="steps-list">
+        <li><span class="step-tag">[01]</span><div><div class="step-title">ENTER TARGET URL</div><div class="step-desc">Paste the full URL of the page containing your element. Example: <span class="hi">https://bbc.com/</span></div></div></li>
+        <li><span class="step-tag">[02]</span><div><div class="step-title">DESCRIBE THE ELEMENT</div><div class="step-desc">Plain English. Be specific — not just <span class="hi">"button"</span>, say <span class="hi">"the blue Submit button inside the login form"</span>. More detail = better locators.</div></div></li>
+        <li><span class="step-tag">[03]</span><div><div class="step-title">EXECUTE</div><div class="step-desc">Hit <span class="hi">[ EXECUTE ]</span>. No account, no API key, no cost. Results appear in seconds.</div></div></li>
+        <li><span class="step-tag">[04]</span><div><div class="step-title">REVIEW &amp; COPY</div><div class="step-desc">5–7 locators ranked <span style="color:var(--accent)">[RECOMMENDED]</span> → <span style="color:var(--red)">[AVOID]</span> with reasons. Click any to copy instantly.</div></div></li>
+        <li><span class="step-tag">[05]</span><div><div class="step-title">VERIFY IN DEVTOOLS</div><div class="step-desc">F12 → Elements → <span class="hi">Ctrl+F</span>. Paste selector. Target: <span class="hi">"1 of 1"</span>. Each card shows the exact verification command.</div></div></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MAIN FORM -->
+  <div class="cyber-divider"><span class="label">&#9670; TARGET ACQUISITION &#9670;</span></div>
+
+  <div class="cyber-card">
+    <div class="cyber-card-header">
+      <span>+-- INPUT PARAMETERS // URL + ELEMENT DESCRIPTOR</span>
+      <span style="font-family:var(--font-label);font-size:10px;color:var(--fg-muted)">AWAITING INPUT</span>
+    </div>
+    <div class="cyber-card-body">
+      <div class="field">
+        <span class="field-label">// target url</span>
+        <div class="cyber-input-row">
+          <span class="cyber-input-prefix">URL &gt;</span>
+          <input type="text" id="url" placeholder="https://www.bbc.com/" autocomplete="off" />
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">// element description</span>
+        <div class="cyber-input-row">
+          <span class="cyber-input-prefix" style="align-self:flex-start;padding-top:10px;">DESC&gt;</span>
+          <textarea id="desc" placeholder='e.g. "the register button in the top nav" or "email input inside the login form"'></textarea>
+        </div>
+      </div>
+      <button class="btn-run" id="runBtn" onclick="execute()"><span>[ EXECUTE // ACQUIRE LOCATORS ]</span></button>
+      <div class="log-line" id="logLine">
+        <span class="spin" id="spinner"></span>
+        <span id="statusText">&gt; awaiting command...</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+  <footer>
+    <span>// locators are ai-generated — always verify in devtools before committing to tests</span>
+    <a href="https://playwright.dev/docs/locators" target="_blank">[ playwright locator docs ]</a>
+  </footer>
+</div>
+
+<div class="toast" id="toast">[ COPIED TO CLIPBOARD ]</div>
+
+<script>
+  // ── CONFIG ──
+  // When running locally:  http://localhost:3000
+  // When deployed (e.g. Railway/Render): replace with your deployed server URL
+  // Example: const API = 'https://pw-locator.up.railway.app';
+  const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : 'https://YOUR-SERVER-URL-HERE.up.railway.app'; // <-- replace this after deploying
+
+function toggle(id) {
+  const body = document.getElementById('guide-' + id);
+  const chev = document.getElementById('chev-' + id);
+  const open = body.classList.toggle('open');
+  chev.textContent = open ? '[-]' : '[+]';
+}
+
+function setLog(msg, type) {
+  const line = document.getElementById('logLine');
+  document.getElementById('statusText').textContent = msg;
+  line.className = 'log-line' + (type ? ' ' + type : '');
+}
+
+async function execute() {
+  const url = document.getElementById('url').value.trim();
+  const desc = document.getElementById('desc').value.trim();
+  if (!url || !desc) { setLog('[ERR] // both fields required', 'err'); return; }
+
+  if (API.includes('YOUR-SERVER-URL-HERE')) {
+    setLog('[ERR] // server not configured — see README for deployment instructions', 'err');
+    return;
+  }
+
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('spinner').classList.add('active');
+  setLog('> scanning dom patterns // transmitting to ai engine...');
+  document.getElementById('results').innerHTML = '';
+
+  try {
+    const res = await fetch(API + '/locators', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, description: desc })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || 'server error ' + res.status);
+    }
+
+    const data = await res.json();
+    renderResults(data);
+    setLog('[OK] // ' + data.locators.length + ' locators acquired — click any to copy', 'ok');
+  } catch (e) {
+    setLog('[ERR] // ' + e.message, 'err');
+    console.error(e);
+  }
+
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('spinner').classList.remove('active');
+}
+
+function renderResults(data) {
+  const el = document.getElementById('results');
+  const qMap = {
+    best:    ['q-best',    'RECOMMENDED'],
+    good:    ['q-good',    'GOOD'],
+    fragile: ['q-fragile', 'FRAGILE'],
+    avoid:   ['q-avoid',   'AVOID']
+  };
+
+  let html = `
+    <div class="cyber-divider"><span class="label">&#9670; LOCATOR OUTPUT &#9670;</span></div>
+    <div class="results-bar">// TARGET: <strong>${esc(data.element_summary)}</strong></div>`;
+
+  data.locators.forEach((loc, i) => {
+    const [qc, ql] = qMap[loc.quality] || ['q-good', loc.quality.toUpperCase()];
+    html += `
+    <div class="locator-card ${loc.quality === 'best' ? 'best' : ''}" style="animation-delay:${i*0.06}s">
+      <div class="locator-titlebar">
+        <span class="q-tag ${qc}">${ql}</span>
+        <span class="loc-type">${esc(loc.type)}</span>
+      </div>
+      <div class="locator-body">
+        <div class="locator-code" onclick="copyText(${JSON.stringify(loc.code)})">
+          ${esc(loc.code)}<span class="copy-hint">[ COPY ]</span>
+        </div>
+        <div class="locator-why">${esc(loc.reason)}</div>
+        <div class="devtools-block">
+          <div class="devtools-label">&#9670; DEVTOOLS VERIFICATION PROTOCOL</div>
+          ${renderDevtools(loc)}
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += `
+  <div class="snippet-wrap">
+    <div class="snippet-header">&#9670; READY-TO-EXECUTE SNIPPET // CLICK TO COPY</div>
+    <div class="snippet-body">
+      <div class="snippet-code" onclick="copyText(${JSON.stringify(data.playwright_snippet)})">${esc(data.playwright_snippet)}</div>
+      <div class="snippet-note">uses top-ranked locator</div>
+    </div>
+  </div>`;
+
+  el.innerHTML = html;
+}
+
+function renderDevtools(loc) {
+  const type = loc.type.toLowerCase();
+  const code = loc.code;
+  if (type.includes('role') || type.includes('text') || type.includes('label') || type.includes('placeholder')) {
+    return `
+      <div class="dt-step"><span class="n">01</span>launch playwright inspector:</div>
+      <code class="dt-cmd" onclick="copyText('PWDEBUG=1 npx playwright test')">PWDEBUG=1 npx playwright test</code>
+      <div class="dt-step" style="margin-top:7px;"><span class="n">02</span>click <strong style="color:var(--fg)">pick locator</strong> icon → hover target element</div>
+      <div class="dt-step"><span class="n">03</span>or type in <strong style="color:var(--fg)">explore</strong> tab to see live match count</div>`;
+  }
+  const raw = code.replace(/^page\.locator\(\s*['"]/, '').replace(/['"]\s*\)\s*$/, '');
+  if (type.includes('xpath')) {
+    return `
+      <div class="dt-step"><span class="n">01</span>devtools → elements → <span class="kbd">ctrl+f</span> / <span class="kbd">cmd+f</span></div>
+      <div class="dt-step"><span class="n">02</span>paste xpath (auto-detected via <span class="kbd">//</span> prefix) — verify "1 of N"</div>
+      <code class="dt-cmd" onclick="copyText(${JSON.stringify(raw)})">${esc(raw)}</code>
+      <div class="dt-step" style="margin-top:7px;"><span class="n">or</span>count in console:</div>
+      <code class="dt-cmd" onclick="copyText(${JSON.stringify('$x('+JSON.stringify(raw)+').length')})">$x(${esc(JSON.stringify(raw))}).length</code>`;
+  }
+  return `
+    <div class="dt-step"><span class="n">01</span>devtools → elements → <span class="kbd">ctrl+f</span> / <span class="kbd">cmd+f</span></div>
+    <div class="dt-step"><span class="n">02</span>paste selector — check "1 of N". target: <strong style="color:var(--accent)">"1 of 1"</strong></div>
+    <code class="dt-cmd" onclick="copyText(${JSON.stringify(raw)})">${esc(raw)}</code>
+    <div class="dt-step" style="margin-top:7px;"><span class="n">or</span>count in console:</div>
+    <code class="dt-cmd" onclick="copyText(${JSON.stringify('$$('+JSON.stringify(raw)+').length')})">$$(${esc(JSON.stringify(raw))}).length</code>`;
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1600);
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('desc').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); execute(); }
+});
+</script>
+</body>
+</html>
