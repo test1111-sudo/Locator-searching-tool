@@ -288,11 +288,6 @@ async function execute() {
   const desc = document.getElementById('desc').value.trim();
   if (!url || !desc) { setLog('[ERR] // both fields required', 'err'); return; }
 
-  if (API.includes('locator-searching-tool-production.up.railway.app')) {
-    setLog('[ERR] // server not configured — see README for deployment instructions', 'err');
-    return;
-  }
-
   document.getElementById('runBtn').disabled = true;
   document.getElementById('spinner').classList.add('active');
   setLog('> scanning dom patterns // transmitting to ai engine...');
